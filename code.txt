@@ -1,0 +1,119 @@
+pip install pandas numpy matplotlib seaborn plotly scikit-learn ipykernel
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import requests
+import zipfile
+import io
+import os
+import streamlit as st
+import sklearn
+
+#data set main file upload 
+URL = "C:\\Users\\djdin\\OneDrive\\Desktop\\Delivery station\\Delivery_station_main_table.xlsx"
+
+zip_finename = "Delivery_station_main_table.xlsx"
+
+df = pd.read_excel(URL) # load the excel file into a pandas DataFrame
+df.head() # display the first few rows of the DataFrame
+
+df.info() # get the summary of columns, non-null counts, and data types
+
+# Check for any duplicate rows
+
+duplicates = df.duplicated().sum()
+print(f"Number of duplicate rows: {duplicates}")
+
+
+# Get statistical summary for numerical columns
+df.describe()
+
+
+# Count the total missing values for each column
+missing_values = df.isna().sum()
+
+print("Missing values per column:")
+print(missing_values)
+
+
+
+## Distribution of Packages Processed
+## Let's see how many packages are typically processed per hour/shift using a histogram and a Kernel Density Estimate (KDE) plot via Seaborn:
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Packages_Processed'], kde=True, color='blue')
+plt.title('Distribution of Packages Processed')
+plt.xlabel('Packages Processed')
+plt.ylabel('Frequency')
+plt.show()
+
+
+## Packages Processed by Work Area (Boxplot)
+## Let's compare performance across different work areas (Zone_A, Zone_B, etc.):
+
+
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Work_Area', y='Packages_Processed', data=df, palette='Set2')
+plt.title('Packages Processed by Work Area')
+plt.xlabel('Work Area')
+plt.ylabel('Packages Processed')
+plt.show()
+
+
+## Correlation Heatmap
+## Let's see how numerical variables (like Labor Hours, Missorts, and Packages Processed) relate to each other:
+
+
+plt.figure(figsize=(10, 8))
+# Select only numerical columns for correlation
+numeric_df = df.select_dtypes(include=['int64', 'float64'])
+sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
+plt.title('Correlation Matrix of Delivery Station Metrics')
+plt.show()
+
+## Time Series Trend (Packages Processed Over Time)
+## In a delivery station, spotting daily or hourly trends is crucial for identifying peak operating hours or slowdowns.
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(14, 6))
+# Group by Date and sum up packages processed
+daily_trend = df.groupby('Date')['Packages_Processed'].sum().reset_index()
+
+sns.lineplot(x='Date', y='Packages_Processed', data=daily_trend, color='green', linewidth=2)
+plt.title('Total Packages Processed Over Time')
+plt.xlabel('Date')
+plt.ylabel('Total Packages Processed')
+plt.xticks(rotation=45)
+plt.show()
+
+## Staffing Efficiency (Planned vs. Actual Associates)
+## This helps you see how closely your station sticks to its planned staffing levels versus how many associates actually showed up.
+
+plt.figure(figsize=(8, 8))
+sns.scatterplot(x='Associates_Planned', y='Associates_Actual', data=df, alpha=0.5, color='purple')
+plt.title('Planned vs. Actual Associates')
+plt.xlabel('Associates Planned')
+plt.ylabel('Associates Actual')
+# Add a diagonal line for reference (perfect match)
+plt.plot([df['Associates_Planned'].min(), df['Associates_Planned'].max()], 
+         [df['Associates_Planned'].min(), df['Associates_Planned'].max()], 
+         color='red', linestyle='--')
+plt.show()
+
+
+📊 Chart Interpretation Note: Planned vs. Actual Associates
+Red Dashed Line: Represents the 1:1 target where Planned = Actual staffing.
+
+Purple Dots Below the Line: Indicate shifts experiencing under-staffing (fewer workers showed up than scheduled).
+
+Key Insight: Notice how many data points (such as when 14 associates are planned) cluster slightly below the red line at 12 or 13 actual workers.
+
+This consistent gap reveals a predictable minor absenteeism trend, 
+suggesting management may need to over-schedule by 1–2 staff members to consistently hit target floor numbers.
